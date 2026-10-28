@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/opt/homebrew/Cellar/php@8.5/8.5.0_4/bin/php",
+            "args": [
+                "/Users/eljonshala/Documents/GitHub/Other/funeral-referral/funeral-referral-api/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}

@@ -15,11 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $password = env('SEED_ADMIN_PASSWORD');
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (blank($password)) {
+            throw new RuntimeException('Set SEED_ADMIN_PASSWORD in .env before seeding.');
+        }
+
+        User::query()->updateOrCreate(
+            ['email' => env('SEED_ADMIN_EMAIL', 'admin@example.com')],
+            ['name' => 'Admin', 'password' => $password, 'role' => 'admin'],
+        );
     }
 }
