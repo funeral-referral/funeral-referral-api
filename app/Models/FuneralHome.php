@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'name',
@@ -78,5 +79,21 @@ class FuneralHome extends Model
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /**
+     * @return HasMany<FieldValue, $this>
+     */
+    public function observations(): HasMany
+    {
+        return $this->hasMany(FieldValue::class);
+    }
+
+    /**
+     * @return HasMany<ChangeEvent, $this>
+     */
+    public function changeEvents(): HasMany
+    {
+        return $this->hasMany(ChangeEvent::class);
     }
 }

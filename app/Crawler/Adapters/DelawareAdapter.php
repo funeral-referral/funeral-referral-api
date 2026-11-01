@@ -22,6 +22,28 @@ class DelawareAdapter extends SocrataAdapter
         return 'DE';
     }
 
+    /**
+     * The register keeps a row per licence history entry, so one licence number can
+     * appear several times. Keep the current row: an Active one, or else the one
+     * that expires last.
+     */
+    public function fetch(): iterable
+    {
+        $current = [];
+
+        foreach (parent::fetch() as $record) {
+            $held = $current[$record->externalId] ?? null;
+
+            if ($held === null || $this->rank($record) > $this->rank($held)) {
+                $current[$record->externalId] = $record;
+            }
+        }
+
+        foreach ($current as $record) {
+            yield $record;
+        }
+    }
+
     protected function endpoint(): string
     {
         return 'https://data.delaware.gov/resource/pjnv-eaih.json';
@@ -53,6 +75,13 @@ class DelawareAdapter extends SocrataAdapter
             ], fn (mixed $value): bool => $value !== null && $value !== ''),
             payload: $row,
         );
+    }
+
+    private function rank(SourceRecordData $record): string
+    {
+        $active = strcasecmp((string) ($record->fields['license_status'] ?? ''), 'Active') === 0 ? '1' : '0';
+
+        return $active.substr((string) ($record->payload['expiration_date'] ?? ''), 0, 10);
     }
 
     /**

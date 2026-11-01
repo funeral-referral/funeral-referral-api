@@ -110,6 +110,13 @@ class Matcher
             return false;
         }
 
+        $sameStreetNumber = preg_match('/^\d+/', $existing, $existingNumber) === 1
+            && preg_match('/^\d+/', $incoming, $incomingNumber) === 1;
+
+        if ($sameStreetNumber && $existingNumber[0] !== $incomingNumber[0]) {
+            return true;
+        }
+
         similar_text($existing, $incoming, $percent);
 
         return $percent < 85;

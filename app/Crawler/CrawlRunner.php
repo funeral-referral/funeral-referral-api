@@ -44,14 +44,25 @@ class CrawlRunner
             'started_at' => now(),
         ]);
 
-        $counts = ['seen' => 0, 'new' => 0, 'changed' => 0, 'errors' => 0];
+        $counts = ['seen' => 0, 'new' => 0, 'changed' => 0, 'errors' => 0, 'duplicates' => 0];
         $errors = [];
+        $issued = [];
         $status = 'completed';
         $fatal = null;
 
         try {
             foreach ($adapter->fetch() as $record) {
                 $counts['seen']++;
+
+                // A source that repeats a record id would otherwise overwrite itself
+                // on every crawl and report the flip as a change. The first row wins.
+                if (isset($issued[$record->externalId])) {
+                    $counts['duplicates']++;
+
+                    continue;
+                }
+
+                $issued[$record->externalId] = true;
 
                 try {
                     $outcome = DB::transaction(fn (): string => $this->ingest($source, $run, $record));
@@ -81,7 +92,11 @@ class CrawlRunner
             'records_new' => $counts['new'],
             'records_changed' => $counts['changed'],
             'error' => $fatal,
-            'stats' => ['record_errors' => $counts['errors'], 'sample_errors' => array_slice($errors, 0, 5)],
+            'stats' => [
+                'record_errors' => $counts['errors'],
+                'duplicate_rows' => $counts['duplicates'],
+                'sample_errors' => array_slice($errors, 0, 5),
+            ],
         ]);
 
         return $run->refresh();
