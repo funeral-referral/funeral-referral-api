@@ -22,12 +22,19 @@ class FuneralHomeController extends Controller
             'status' => ['nullable', Rule::in(['open', 'closed'])],
             'sort' => ['nullable', Rule::in(['name', 'state_code', '-first_seen_at', '-partner_score'])],
             'min_score' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'assigned_to' => ['nullable', 'regex:/^(me|unassigned|\d+)$/'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
         $sort = $filters['sort'] ?? 'name';
 
         $homes = FuneralHome::query()
+            ->with('assignee:id,name')
+            ->when($filters['assigned_to'] ?? null, fn ($query, string $who) => match ($who) {
+                'unassigned' => $query->whereNull('assigned_to'),
+                'me' => $query->where('assigned_to', $request->user()->id),
+                default => $query->where('assigned_to', (int) $who),
+            })
             ->when($filters['state'] ?? null, fn ($query, string $state) => $query->where('state_code', strtoupper($state)))
             ->when($filters['ownership_type'] ?? null, fn ($query, string $type) => $query->where('ownership_type', $type))
             ->when($filters['stage'] ?? null, fn ($query, string $stage) => $query->where('stage', $stage))
@@ -70,6 +77,13 @@ class FuneralHomeController extends Controller
                 ->latest('occurred_at')
                 ->latest('id')
                 ->limit(50),
+            'assignee:id,name',
+            'notes' => fn ($query) => $query->with('user:id,name')->latest()->latest('id'),
+            'referrals' => fn ($query) => $query->with('logger:id,name')->latest('referred_on')->latest('id'),
+            'stageChanges' => fn ($query) => $query->with('user:id,name')->latest()->latest('id')->limit(30),
+            'latestCampaign.messages',
+            'latestCampaign.approver',
+            'replies' => fn ($query) => $query->latest('received_at')->latest('id')->limit(20),
         ]);
 
         return new FuneralHomeResource($home);

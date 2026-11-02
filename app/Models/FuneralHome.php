@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'name',
@@ -96,5 +97,72 @@ class FuneralHome extends Model
     public function changeEvents(): HasMany
     {
         return $this->hasMany(ChangeEvent::class);
+    }
+
+    /**
+     * @return HasMany<Campaign, $this>
+     */
+    public function campaigns(): HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
+    /**
+     * @return HasMany<Note, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(Note::class);
+    }
+
+    /**
+     * @return HasMany<Referral, $this>
+     */
+    public function referrals(): HasMany
+    {
+        return $this->hasMany(Referral::class);
+    }
+
+    /**
+     * @return HasMany<StageChange, $this>
+     */
+    public function stageChanges(): HasMany
+    {
+        return $this->hasMany(StageChange::class);
+    }
+
+    /**
+     * @return HasMany<EmailReply, $this>
+     */
+    public function replies(): HasMany
+    {
+        return $this->hasMany(EmailReply::class);
+    }
+
+    /**
+     * @return HasOne<Campaign, $this>
+     */
+    public function latestCampaign(): HasOne
+    {
+        return $this->hasOne(Campaign::class)->latestOfMany();
+    }
+
+    /**
+     * Move the home along the pipeline and keep a record of who or what moved it.
+     */
+    public function moveToStage(Stage $stage, ?User $user = null): void
+    {
+        if ($this->stage === $stage) {
+            return;
+        }
+
+        StageChange::query()->create([
+            'funeral_home_id' => $this->id,
+            'user_id' => $user?->id,
+            'from_stage' => $this->stage->value,
+            'to_stage' => $stage->value,
+        ]);
+
+        $this->update(['stage' => $stage]);
     }
 }

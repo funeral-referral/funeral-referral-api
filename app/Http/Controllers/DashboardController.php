@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ChangeEvent;
 use App\Models\FuneralHome;
+use App\Models\Referral;
 use App\Models\Source;
 use Illuminate\Http\JsonResponse;
 
@@ -23,6 +24,14 @@ class DashboardController extends Controller
                 ->groupBy('state_code')
                 ->orderBy('state_code')
                 ->get(),
+            'by_stage' => FuneralHome::query()
+                ->selectRaw('stage, count(*) as total')
+                ->groupBy('stage')
+                ->pluck('total', 'stage'),
+            'referrals' => [
+                'total' => Referral::query()->count(),
+                'value_cents' => (int) Referral::query()->sum('value_cents'),
+            ],
             'by_ownership' => FuneralHome::query()
                 ->selectRaw('ownership_type, count(*) as total')
                 ->groupBy('ownership_type')

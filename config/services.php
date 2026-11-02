@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'version' => '2023-06-01',
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

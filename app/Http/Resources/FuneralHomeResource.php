@@ -47,6 +47,31 @@ class FuneralHomeResource extends JsonResource
             'closed_at' => $this->closed_at,
             'observations' => FieldValueResource::collection($this->whenLoaded('observations')),
             'changes' => ChangeEventResource::collection($this->whenLoaded('changeEvents')),
+            'assigned_to' => $this->assigned_to,
+            'assignee' => $this->whenLoaded('assignee', fn () => $this->assignee?->name),
+            'notes' => $this->whenLoaded('notes', fn () => $this->notes->map(fn ($note) => [
+                'id' => $note->id,
+                'body' => $note->body,
+                'author' => $note->user?->name,
+                'created_at' => $note->created_at,
+            ])),
+            'referrals' => $this->whenLoaded('referrals', fn () => $this->referrals->map(fn ($referral) => [
+                'id' => $referral->id,
+                'referred_on' => $referral->referred_on->toDateString(),
+                'reference' => $referral->reference,
+                'value_cents' => $referral->value_cents,
+                'notes' => $referral->notes,
+                'logged_by' => $referral->logger?->name,
+            ])),
+            'stage_history' => $this->whenLoaded('stageChanges', fn () => $this->stageChanges->map(fn ($change) => [
+                'id' => $change->id,
+                'from_stage' => $change->from_stage,
+                'to_stage' => $change->to_stage,
+                'by' => $change->user?->name,
+                'created_at' => $change->created_at,
+            ])),
+            'campaign' => CampaignResource::make($this->whenLoaded('latestCampaign')),
+            'replies' => EmailReplyResource::collection($this->whenLoaded('replies')),
         ];
     }
 }
