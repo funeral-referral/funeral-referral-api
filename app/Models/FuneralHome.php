@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'license_number',
     'license_status',
     'licensed_director',
+    'owner_name',
     'ownership_type',
     'chain_name',
     'offers_burial',

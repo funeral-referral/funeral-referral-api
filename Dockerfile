@@ -1,4 +1,5 @@
-FROM dunglas/frankenphp:latest
+# Pinned so rebuilds reuse the cached layers instead of downloading a new base image.
+FROM dunglas/frankenphp:latest@sha256:6f86f003f1478bafa7befe6ec26db5575e703882171f785189de1e222df0e38e
 
 RUN install-php-extensions pdo_pgsql pcntl bcmath intl zip opcache
 

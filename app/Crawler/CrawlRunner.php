@@ -21,7 +21,7 @@ class CrawlRunner
     private const TRACKED_FIELDS = [
         'name', 'address_line1', 'city', 'state_code', 'postal_code', 'county',
         'phone', 'email', 'website', 'latitude', 'longitude', 'license_number',
-        'license_status', 'licensed_director', 'offers_preneed', 'offers_burial',
+        'license_status', 'licensed_director', 'owner_name', 'offers_preneed', 'offers_burial',
         'offers_cremation',
     ];
 
@@ -107,7 +107,8 @@ class CrawlRunner
      */
     private function ingest(Source $source, CrawlRun $run, SourceRecordData $data): string
     {
-        $hash = hash('sha256', (string) json_encode($data->payload, JSON_UNESCAPED_UNICODE));
+        // Hash what we map as well as what the source sent, so a newly mapped field backfills on the next crawl.
+        $hash = hash('sha256', (string) json_encode([$data->payload, $data->fields], JSON_UNESCAPED_UNICODE));
 
         $existing = SourceRecord::query()
             ->where('source_id', $source->id)
@@ -201,6 +202,12 @@ class CrawlRunner
                 ->where('is_current', true)
                 ->first();
 
+            // When several records of one source share a home, the oldest record owns the
+            // value. Otherwise they would overwrite each other on every crawl.
+            if ($current?->source_record_id !== null && $current->source_record_id < $record->id) {
+                continue;
+            }
+
             if ($current?->value === $stored) {
                 continue;
             }
@@ -285,6 +292,7 @@ class CrawlRunner
             'website' => [$old === null ? ChangeType::NewWebsite : ChangeType::WebsiteChanged],
             'phone' => [$old === null ? ChangeType::NewPhone : ChangeType::PhoneChanged],
             'email' => [ChangeType::EmailChanged],
+            'owner_name' => $old === null ? [] : [ChangeType::OwnerChanged],
             'address_line1', 'city', 'postal_code' => [ChangeType::AddressChanged],
             default => [],
         };

@@ -48,6 +48,47 @@ class CrawlRunnerTest extends TestCase
         );
     }
 
+    public function test_records_of_one_source_sharing_a_home_do_not_overwrite_each_other(): void
+    {
+        $runner = app(CrawlRunner::class);
+        $older = $this->record('older', 'Alder Funeral Home', 'Dover', 'Active');
+        $newer = new SourceRecordData('newer', 'Alder Funeral Homes LLC', 'DE', ['city' => 'Lewes', 'license_number' => 'older', 'license_status' => 'Expired'], ['row' => 2]);
+
+        $first = $runner->run($this->adapter([$older, $newer]));
+        $second = $runner->run($this->adapter([$older, $newer]));
+
+        $home = FuneralHome::query()->sole();
+        $this->assertSame(1, $first->records_new);
+        $this->assertSame('Dover', $home->city);
+        $this->assertSame('Active', $home->license_status);
+        $this->assertSame(0, $second->records_changed);
+        $this->assertSame(0, ChangeEvent::query()->where('crawl_run_id', $second->id)->count());
+
+        $changed = $this->record('older', 'Alder Funeral Home', 'Dover Heights', 'Active');
+        $third = $runner->run($this->adapter([$changed, $newer]));
+
+        $this->assertSame('Dover Heights', FuneralHome::query()->sole()->city);
+        $this->assertSame(1, $third->records_changed);
+    }
+
+    public function test_a_changed_owner_is_recorded_as_an_ownership_change(): void
+    {
+        $runner = app(CrawlRunner::class);
+
+        $first = new SourceRecordData('K2-3', 'Cedar Funeral Home', 'DE', ['owner_name' => 'Old Owners LLC'], ['version' => 1]);
+        $second = new SourceRecordData('K2-3', 'Cedar Funeral Home', 'DE', ['owner_name' => 'New Owners LLC'], ['version' => 2]);
+
+        $firstRun = $runner->run($this->adapter([$first]));
+        $secondRun = $runner->run($this->adapter([$second]));
+
+        $this->assertSame(0, ChangeEvent::query()->where('crawl_run_id', $firstRun->id)->where('type', 'owner_changed')->count());
+
+        $event = ChangeEvent::query()->where('crawl_run_id', $secondRun->id)->sole();
+        $this->assertSame('owner_changed', $event->type->value);
+        $this->assertSame('Old Owners LLC', $event->old_value);
+        $this->assertSame('New Owners LLC', $event->new_value);
+    }
+
     /**
      * @param  list<SourceRecordData>  $records
      */

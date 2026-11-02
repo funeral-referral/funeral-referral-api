@@ -28,6 +28,13 @@ class DashboardController extends Controller
                 ->groupBy('ownership_type')
                 ->orderByDesc('total')
                 ->get(),
+            'top_prospects' => FuneralHome::query()
+                ->whereNull('closed_at')
+                ->whereNotNull('partner_score')
+                ->orderByDesc('partner_score')
+                ->orderBy('id')
+                ->limit(10)
+                ->get(['id', 'name', 'city', 'state_code', 'partner_score', 'ownership_type']),
             'changes' => [
                 'window_days' => self::WINDOW_DAYS,
                 'baseline_until' => config('crawler.baseline_until'),

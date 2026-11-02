@@ -52,6 +52,7 @@ class TexasPrepaidAdapter extends SocrataAdapter
                 'address_line1' => $address,
                 'city' => Normalizer::city($row['city'] ?? null),
                 'phone' => Normalizer::phone($row['phone'] ?? null),
+                'owner_name' => $name,
                 'offers_preneed' => true,
             ], fn (mixed $value): bool => $value !== null && $value !== ''),
             payload: $row,

@@ -56,6 +56,7 @@ class ArizonaAdapter extends ArcGisAdapter
                 'email' => $email,
                 'website' => $email === null ? Normalizer::website($contact) : null,
                 'licensed_director' => trim((string) ($attributes['FHDirectorName'] ?? '')),
+                'owner_name' => trim((string) ($attributes['Owner'] ?? '')),
                 'latitude' => $geometry['y'] ?? null,
                 'longitude' => $geometry['x'] ?? null,
             ], fn (mixed $value): bool => $value !== null && $value !== ''),

@@ -15,4 +15,5 @@ enum ChangeType: string
     case PhoneChanged = 'phone_changed';
     case EmailChanged = 'email_changed';
     case AddressChanged = 'address_changed';
+    case OwnerChanged = 'owner_changed';
 }

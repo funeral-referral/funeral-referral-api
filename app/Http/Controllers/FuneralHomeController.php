@@ -20,7 +20,8 @@ class FuneralHomeController extends Controller
             'ownership_type' => ['nullable', Rule::enum(OwnershipType::class)],
             'stage' => ['nullable', Rule::enum(Stage::class)],
             'status' => ['nullable', Rule::in(['open', 'closed'])],
-            'sort' => ['nullable', Rule::in(['name', 'state_code', '-first_seen_at'])],
+            'sort' => ['nullable', Rule::in(['name', 'state_code', '-first_seen_at', '-partner_score'])],
+            'min_score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -42,10 +43,13 @@ class FuneralHomeController extends Controller
                     ->orWhere('phone', 'like', $like)
                     ->orWhere('license_number', 'ilike', $like));
             })
+            ->when($filters['min_score'] ?? null, fn ($query, int $score) => $query->where('partner_score', '>=', $score))
             ->when(
                 $sort === '-first_seen_at',
                 fn ($query) => $query->orderByDesc('first_seen_at')->orderBy('id'),
-                fn ($query) => $query->orderBy($sort)->orderBy('id'),
+                fn ($query) => $sort === '-partner_score'
+                    ? $query->orderByRaw('partner_score desc nulls last')->orderBy('id')
+                    : $query->orderBy($sort)->orderBy('id'),
             )
             ->paginate($filters['per_page'] ?? 25)
             ->withQueryString();

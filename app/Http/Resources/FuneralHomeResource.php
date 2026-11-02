@@ -32,6 +32,7 @@ class FuneralHomeResource extends JsonResource
             'license_number' => $this->license_number,
             'license_status' => $this->license_status,
             'licensed_director' => $this->licensed_director,
+            'owner_name' => $this->owner_name,
             'ownership_type' => $this->ownership_type,
             'chain_name' => $this->chain_name,
             'offers_burial' => $this->offers_burial,
