@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'city',
     'state_code',
     'county',
+    'county_fips',
     'postal_code',
     'latitude',
     'longitude',

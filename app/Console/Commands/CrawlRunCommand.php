@@ -42,6 +42,7 @@ class CrawlRunCommand extends Command
 
         $this->table(['Source', 'Status', 'Seen', 'New', 'Changed', 'Errors'], $rows);
 
+        $this->call('homes:locate');
         $this->call('homes:score');
 
         return $failed ? self::FAILURE : self::SUCCESS;

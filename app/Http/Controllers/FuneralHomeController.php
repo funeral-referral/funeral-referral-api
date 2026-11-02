@@ -23,6 +23,7 @@ class FuneralHomeController extends Controller
             'sort' => ['nullable', Rule::in(['name', 'state_code', '-first_seen_at', '-partner_score'])],
             'min_score' => ['nullable', 'integer', 'min:0', 'max:100'],
             'assigned_to' => ['nullable', 'regex:/^(me|unassigned|\d+)$/'],
+            'county' => ['nullable', 'digits:5'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -35,6 +36,7 @@ class FuneralHomeController extends Controller
                 'me' => $query->where('assigned_to', $request->user()->id),
                 default => $query->where('assigned_to', (int) $who),
             })
+            ->when($filters['county'] ?? null, fn ($query, string $fips) => $query->where('county_fips', $fips))
             ->when($filters['state'] ?? null, fn ($query, string $state) => $query->where('state_code', strtoupper($state)))
             ->when($filters['ownership_type'] ?? null, fn ($query, string $type) => $query->where('ownership_type', $type))
             ->when($filters['stage'] ?? null, fn ($query, string $stage) => $query->where('stage', $stage))

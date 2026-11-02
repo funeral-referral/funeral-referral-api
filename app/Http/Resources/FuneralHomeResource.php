@@ -23,6 +23,7 @@ class FuneralHomeResource extends JsonResource
             'city' => $this->city,
             'state_code' => $this->state_code,
             'county' => $this->county,
+            'county_fips' => $this->county_fips,
             'postal_code' => $this->postal_code,
             'latitude' => $this->latitude === null ? null : (float) $this->latitude,
             'longitude' => $this->longitude === null ? null : (float) $this->longitude,

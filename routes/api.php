@@ -8,6 +8,7 @@ use App\Http\Controllers\CrawlRunController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FuneralHomeController;
 use App\Http\Controllers\InboundEmailController;
+use App\Http\Controllers\MapController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\ReplyController;
 use App\Http\Controllers\UnsubscribeController;
@@ -29,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/homes', [FuneralHomeController::class, 'index']);
     Route::get('/homes/{home}', [FuneralHomeController::class, 'show']);
     Route::get('/changes', [ChangeEventController::class, 'index']);
+    Route::get('/map', MapController::class);
     Route::get('/crawl-runs', [CrawlRunController::class, 'index']);
 
     Route::get('/users', [PipelineController::class, 'users']);
