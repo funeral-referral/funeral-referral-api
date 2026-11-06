@@ -33,6 +33,9 @@ services:
   postgres:
     image: postgres:18
     restart: unless-stopped
+    ports:
+      # Loopback only: reachable through an SSH tunnel, never from the internet.
+      - "127.0.0.1:5432:5432"
     environment:
       POSTGRES_DB: ${DB_DATABASE}
       POSTGRES_USER: ${DB_USERNAME}
